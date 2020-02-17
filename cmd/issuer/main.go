@@ -1,39 +1,33 @@
 package main
 
 import (
-	"crypto/ecdsa"
+	"encoding/json"
 	"fmt"
 	"github.com/lei-at-anz/stub-issuer/pkg/core"
 	"github.com/lei-at-anz/stub-issuer/pkg/key"
+	"log"
 )
 
 func main() {
-	privateKey, err := key.LoadPrivateKey(&key.FileSpec{
+	config := &key.FileSpec{
 		File:     "keys/key.pem",
 		Password: "changeit",
-	})
-	if err != nil {
-		panic(err)
 	}
-	writePrivateKey(privateKey.Key.(*ecdsa.PrivateKey))
-}
 
-func writePublicKey() {
-	key, err := core.LoadKey()
+	signingKey, err := key.LoadPrivateKey(config)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-	bytes, err := core.MarshalPublicKey(&key.PublicKey)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(string(bytes))
-}
 
-func writePrivateKey(key *ecdsa.PrivateKey) {
-	bytes, err := core.MarshalPrivateKey(key)
+	jwkResponse, err := core.CreateJWKSResponse(signingKey)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-	fmt.Println(string(bytes))
+
+	raw, err := json.Marshal(jwkResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(string(raw))
 }
