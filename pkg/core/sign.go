@@ -2,11 +2,17 @@ package core
 
 import (
 	"github.com/dgrijalva/jwt-go"
+	"github.com/lei-at-anz/stub-issuer/pkg/key"
 )
 
-func SignJWT(headers map[string]string, claims jwt.Claims) (string, error) {
-	//signingMethod := jwt.GetSigningMethod("ES256")
-	//token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
-	//token.Header["kid"] = ""
-	return "", nil
+func SignJWT(claims jwt.Claims, signingKey *key.SigningKey) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
+	token.Header["kid"] = signingKey.ID
+
+	result, err := token.SignedString(signingKey.Key)
+	if err != nil {
+		return "", err
+	}
+
+	return result, nil
 }
